@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import Button from '@/components/ui/Button';
+import CityDetails from './CityDetails';
 
 const MapView = ({ onSelectCity }) => {
   const cities = useGameStore(state => state.cities);
   const railConnections = useGameStore(state => state.railConnections);
   const buildRailConnection = useGameStore(state => state.buildRailConnection);
   const [selectedCities, setSelectedCities] = useState([]);
+  const [showCityDetails, setShowCityDetails] = useState(null);
   
   const handleCityClick = (cityId) => {
     // Don't allow selecting locked cities
@@ -38,6 +40,11 @@ const MapView = ({ onSelectCity }) => {
       conn => (conn.from === cityId1 && conn.to === cityId2) || 
               (conn.from === cityId2 && conn.to === cityId1)
     );
+  };
+  
+  const handleCityInfoClick = (cityId, e) => {
+    e.stopPropagation();
+    setShowCityDetails(cityId);
   };
   
   return (
@@ -100,9 +107,22 @@ const MapView = ({ onSelectCity }) => {
           `}>
             {city.name.charAt(0)}
           </div>
-          <div className="text-xs font-medium mt-1 text-center whitespace-nowrap">
+          <div className="text-xs font-medium mt-1 text-center whitespace-nowrap flex items-center justify-center">
             {city.name}
+            {city.unlocked && (
+              <button
+                className="ml-1 text-[color:var(--primary)] hover:text-opacity-70"
+                onClick={(e) => handleCityInfoClick(city.id, e)}
+              >
+                ℹ️
+              </button>
+            )}
           </div>
+          {city.unlocked && (
+            <div className="text-xs text-center text-[color:var(--primary)]">
+              {city.pointValue} pts
+            </div>
+          )}
         </div>
       ))}
       
@@ -123,6 +143,13 @@ const MapView = ({ onSelectCity }) => {
       <div className="absolute top-3 left-3 right-3 text-xs text-center bg-white bg-opacity-70 p-2 rounded">
         Tap a city to view details. Right-click or long-press to select cities for railway connections.
       </div>
+      
+      {showCityDetails && (
+        <CityDetails 
+          cityId={showCityDetails} 
+          onClose={() => setShowCityDetails(null)} 
+        />
+      )}
     </div>
   );
 };

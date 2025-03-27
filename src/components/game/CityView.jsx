@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
-import { buildings } from '@/utils/gameData';
+import { buildings, imageAssets } from '@/utils/gameData';
+import CityDetails from './CityDetails';
 
 const CityView = ({ cityId }) => {
+  const [showCityDetails, setShowCityDetails] = useState(false);
+  
   const city = useGameStore(state => state.cities.find(c => c.id === cityId));
   const getAvailableBuildings = useGameStore(state => state.getAvailableBuildings);
   const buildingInProgress = useGameStore(state => 
@@ -43,9 +46,18 @@ const CityView = ({ cityId }) => {
   
   return (
     <div>
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-[color:var(--primary)]">{city.name}</h2>
-        <p className="text-gray-600">{city.description}</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div className="text-center flex-1">
+          <h2 className="text-2xl font-bold text-[color:var(--primary)]">{city.name}</h2>
+          <p className="text-gray-600">{city.description}</p>
+        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setShowCityDetails(true)}
+        >
+          City Details
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -62,6 +74,7 @@ const CityView = ({ cityId }) => {
                 word.charAt(0).toUpperCase() + word.slice(1)
               ).join(' ')).join(', ')}
             </div>
+            <div><span className="font-medium">Point Value:</span> {city.pointValue}</div>
           </div>
         </Card>
         
@@ -86,20 +99,31 @@ const CityView = ({ cityId }) => {
             {city.buildings.map(buildingId => {
               const building = buildings.find(b => b.id === buildingId);
               return (
-                <Card key={buildingId} className="text-sm">
-                  <h4 className="font-medium">{building.name}</h4>
-                  <p className="text-xs text-gray-600">{building.description}</p>
-                  <div className="mt-2 text-xs grid grid-cols-2 gap-x-2">
-                    {Object.entries(building.production).map(([resource, amount]) => (
-                      <div key={resource} className="text-green-600">
-                        +{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
-                      </div>
-                    ))}
-                    {Object.entries(building.maintenance).map(([resource, amount]) => (
-                      <div key={resource} className="text-red-600">
-                        -{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
-                      </div>
-                    ))}
+                <Card key={buildingId} className="text-sm flex">
+                  {building.image && imageAssets.buildings[building.image] && (
+                    <div className="w-16 h-16 flex-shrink-0 mr-3">
+                      <img 
+                        src={imageAssets.buildings[building.image]} 
+                        alt="" 
+                        className="w-full h-full object-cover rounded"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h4 className="font-medium">{building.name}</h4>
+                    <p className="text-xs text-gray-600">{building.description}</p>
+                    <div className="mt-2 text-xs grid grid-cols-2 gap-x-2">
+                      {Object.entries(building.production).map(([resource, amount]) => (
+                        <div key={resource} className="text-green-600">
+                          +{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
+                        </div>
+                      ))}
+                      {Object.entries(building.maintenance).map(([resource, amount]) => (
+                        <div key={resource} className="text-red-600">
+                          -{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </Card>
               );
@@ -142,44 +166,62 @@ const CityView = ({ cityId }) => {
           <h3 className="font-semibold mb-2">Available Buildings</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {buildableBuildings.map(building => (
-              <Card key={building.id} className="text-sm">
-                <h4 className="font-medium">{building.name}</h4>
-                <p className="text-xs text-gray-600">{building.description}</p>
-                <div className="mt-2 text-xs grid grid-cols-2 gap-x-2">
-                  {Object.entries(building.production).map(([resource, amount]) => (
-                    <div key={resource} className="text-green-600">
-                      +{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
-                    </div>
-                  ))}
-                  {Object.entries(building.maintenance).map(([resource, amount]) => (
-                    <div key={resource} className="text-red-600">
-                      -{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 text-xs">
-                  <div className="font-medium">Cost:</div>
-                  <div className="grid grid-cols-2 gap-x-2">
-                    {Object.entries(building.cost).map(([resource, amount]) => (
-                      <div key={resource}>
-                        {amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
+              <Card key={building.id} className="text-sm flex">
+                {building.image && imageAssets.buildings[building.image] && (
+                  <div className="w-16 h-16 flex-shrink-0 mr-3">
+                    <img 
+                      src={imageAssets.buildings[building.image]} 
+                      alt="" 
+                      className="w-full h-full object-cover rounded"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h4 className="font-medium">{building.name}</h4>
+                  <p className="text-xs text-gray-600">{building.description}</p>
+                  <div className="mt-2 text-xs grid grid-cols-2 gap-x-2">
+                    {Object.entries(building.production).map(([resource, amount]) => (
+                      <div key={resource} className="text-green-600">
+                        +{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
+                      </div>
+                    ))}
+                    {Object.entries(building.maintenance).map(([resource, amount]) => (
+                      <div key={resource} className="text-red-600">
+                        -{amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
                       </div>
                     ))}
                   </div>
-                </div>
-                <div className="mt-3">
-                  <Button 
-                    onClick={() => startBuilding(city.id, building.id)}
-                    size="sm"
-                    className="w-full"
-                  >
-                    Build ({building.buildTime} days)
-                  </Button>
+                  <div className="mt-3 text-xs">
+                    <div className="font-medium">Cost:</div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      {Object.entries(building.cost).map(([resource, amount]) => (
+                        <div key={resource}>
+                          {amount} {resource.charAt(0).toUpperCase() + resource.slice(1)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <Button 
+                      onClick={() => startBuilding(city.id, building.id)}
+                      size="sm"
+                      className="w-full"
+                    >
+                      Build ({building.buildTime} days)
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
           </div>
         </div>
+      )}
+      
+      {showCityDetails && (
+        <CityDetails 
+          cityId={cityId} 
+          onClose={() => setShowCityDetails(false)} 
+        />
       )}
     </div>
   );

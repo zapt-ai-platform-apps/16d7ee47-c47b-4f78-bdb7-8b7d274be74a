@@ -5,6 +5,7 @@ import CityView from '@/components/game/CityView';
 import TrainManagement from '@/components/game/TrainManagement';
 import SeasonDisplay from '@/components/game/SeasonDisplay';
 import Notifications from '@/components/game/Notifications';
+import StoryEvent from '@/components/game/StoryEvent';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useGameStore } from '@/store/gameStore';
@@ -22,6 +23,14 @@ export default function App() {
   
   const resources = useGameStore(state => state.resources);
   const currentSeason = useGameStore(state => state.currentSeason);
+  const pendingStoryEvents = useGameStore(state => state.pendingStoryEvents);
+  const initializeGame = useGameStore(state => state.initializeGame);
+  
+  useEffect(() => {
+    if (!showIntro) {
+      initializeGame();
+    }
+  }, [showIntro, initializeGame]);
   
   const handleSelectCity = (cityId) => {
     setSelectedCityId(cityId);
@@ -34,6 +43,18 @@ export default function App() {
   
   const handleSwitchToTrains = () => {
     setCurrentView(VIEWS.TRAIN);
+  };
+  
+  const [activeStoryEvent, setActiveStoryEvent] = useState(null);
+  
+  useEffect(() => {
+    if (pendingStoryEvents.length > 0 && !activeStoryEvent) {
+      setActiveStoryEvent(pendingStoryEvents[0]);
+    }
+  }, [pendingStoryEvents, activeStoryEvent]);
+  
+  const handleStoryEventClose = () => {
+    setActiveStoryEvent(null);
   };
 
   return (
@@ -102,6 +123,13 @@ export default function App() {
           )}
           
           <Notifications />
+          
+          {activeStoryEvent && (
+            <StoryEvent 
+              storyEventId={activeStoryEvent} 
+              onClose={handleStoryEventClose} 
+            />
+          )}
         </>
       )}
     </PageLayout>
